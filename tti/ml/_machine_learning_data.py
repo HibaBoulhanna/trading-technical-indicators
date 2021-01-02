@@ -8,6 +8,7 @@ File name: _machine_learning_data.py
 
 import numpy as np
 import pandas as pd
+from multiprocessing import Pool
 
 from ..indicators import *
 from ..utils.constants import DEFAULT_TI_FEATURES
@@ -18,7 +19,7 @@ from ..utils import fillMissingValues
 
 class MachineLearningData:
     """
-    Machine Learning Data class implementation. Create ML data to be used for
+    Machine Learning Data class implementation. Creates ML data to be used for
     the ML model training. The columns are the signals from the chosen
     technical indicators (``ti_features``). The labels are the price direction
     between two data points (``price_diff_periods``). The possible values of
@@ -44,6 +45,11 @@ class MachineLearningData:
             which the price direction is evaluated. The default value is for
             ``1`` period (i.e. 1 day).
 
+        pool_size (int, default=None): Pool size of the processes used when
+            calculating the features values for the ML Data. When None, then
+            the created processes are equal to the number of the available cpu
+            cores.
+
         verbose (bool, default=False): If set to True, processing information
             is sent to the console.
 
@@ -55,6 +61,8 @@ class MachineLearningData:
 
         _price_diff_periods (int): See price_diff_periods argument for
             description.
+
+        _pool_size (int): See pool_size argument for description.
 
         _verbose (bool): See verbose argument for description.
 
@@ -73,11 +81,12 @@ class MachineLearningData:
     """
 
     def __init__(self, input_data, ti_features=DEFAULT_TI_FEATURES,
-                 price_diff_periods=1, verbose=False):
+                 price_diff_periods=1, pool_size=None, verbose=False):
 
         self._input_data = fillMissingValues(input_data=input_data)
         self._ti_features = ti_features
         self._price_diff_periods = price_diff_periods
+        self._pool_size = pool_size
         self._verbose = verbose
 
         # Context added in the _validateInputArguments
@@ -119,6 +128,14 @@ class MachineLearningData:
         else:
             raise WrongTypeForInputParameter(
                 type(self._price_diff_periods), 'price_diff_periods', 'int')
+
+        if isinstance(self._pool_size, int):
+            if self._pool_size < 1:
+                raise WrongValueForInputParameter(
+                    self._pool_size, 'pool_size', '>0')
+        elif self._pool_size is not None:
+            raise WrongTypeForInputParameter(
+                type(self._pool_size), 'pool_size', 'int or None')
 
         # Validate ti_features
         supported_indicators = []
@@ -242,10 +259,20 @@ class MachineLearningData:
             shape=(len(self._input_data.index), len(self._indicators_set)),
             dtype=np.int)
 
-        for i in range(len(self._indicators_set)):
+        processes_pool = Pool(self._pool_size)
 
-            features[:, i] = self._getSignalsSequence(
-                ti=self._indicators_set[i]).transpose()
+        results = [
+            processes_pool.apply_async(
+                self._getSignalsSequence, (self._indicators_set[i], ))
+            for i in range(len(self._indicators_set))
+        ]
+
+        processes_pool.close()
+        processes_pool.join()
+
+        features_values = [r.get() for r in results]
+        for i in range(len(features_values)):
+            features[:, i] = features_values[i].transpose()
 
         return features
 
