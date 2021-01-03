@@ -2,11 +2,13 @@
 Trading-Technical-Indicators (tti) python library
 
 File name: _machine_learning_api.py
-    Implements the API for the Machine Learning features of the tti library.
+    Defines the API for the Machine Learning features of the tti library.
 """
 
+from abc import ABC, abstractmethod
 
-class MachineLearningAPI:
+
+class MachineLearningAPI(ABC):
     """
     Machine Learning API class implementation.
     """
@@ -36,6 +38,7 @@ class MachineLearningAPI:
 
         raise NotImplementedError
 
+    @abstractmethod
     def mlTrainModel(self):
         """
         Trains a machine learning model for prices direction predictions.
@@ -43,6 +46,7 @@ class MachineLearningAPI:
 
         raise NotImplementedError
 
+    @abstractmethod
     def mlPredict(self):
         """
         Returns a prediction.
