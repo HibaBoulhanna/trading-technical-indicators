@@ -11,7 +11,7 @@ import pandas as pd
 from multiprocessing import Pool
 
 from ..indicators import *
-from ..utils.constants import DEFAULT_TI_FEATURES
+from ..utils.constants import DEFAULT_TI_FEATURES, ML_CLASSES
 from ..utils.exceptions import WrongValueForInputParameter, \
     WrongTypeForInputParameter
 from ..utils import fillMissingValues
@@ -289,8 +289,8 @@ class MachineLearningData:
             a=self._input_data['close'].values, shift=self._price_diff_periods,
             axis=0)
 
-        labels[labels > 0] = 2
-        labels[labels < 0] = 1
+        labels[labels > 0] = ML_CLASSES['UP']
+        labels[labels < 0] = ML_CLASSES['DOWN']
 
         return labels
 
