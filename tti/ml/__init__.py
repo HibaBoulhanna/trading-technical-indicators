@@ -5,6 +5,6 @@ the `tti.ml` package includes the implementation of the machine learning
 related features, of the tti library.
 """
 
-from ._machine_learning_api import MachineLearningAPI
+from ._machine_learning_rnn import MachineLearningRNN
 
-__all__ = ['MachineLearningAPI']
+__all__ = ['MachineLearningRNN']
