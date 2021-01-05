@@ -24,9 +24,9 @@ class MachineLearningData:
     technical indicators (``ti_features``). The labels are the price direction
     between two data points (``price_diff_periods``). The possible values of
     the features are ``-1`` for ``buy`` signal, ``0`` for ``hold`` signal and
-    ``1`` for ``sell`` signal. The possible values of the labels are ``1`` for
-    ``downward`` price direction, ``2`` for ``upward`` price direction and
-    ``0`` when price does not change.
+    ``1`` for ``sell`` signal. The possible values of the labels are ``0`` for
+    ``downward`` price direction or when price does not change, and ``1`` for
+    ``upward`` price direction.
 
     Args:
         input_data (pandas.DataFrame): The input data. Required input columns
@@ -290,7 +290,7 @@ class MachineLearningData:
             axis=0)
 
         labels[labels > 0] = ML_CLASSES['UP']
-        labels[labels < 0] = ML_CLASSES['DOWN']
+        labels[labels <= 0] = ML_CLASSES['DOWN']
 
         return labels
 

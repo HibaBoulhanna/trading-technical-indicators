@@ -9,7 +9,7 @@ File name: constants.py
 TRADE_SIGNALS = {'buy': ('buy', -1), 'hold': ('hold', 0), 'sell': ('sell', 1)}
 
 # Possible values for ML classes (price direction)
-ML_CLASSES = {'SAME': 0, 'DOWN': 1, 'UP': 2}
+ML_CLASSES = {'DOWN': 0, 'UP': 1}
 
 # When `default` Technical Indicators are used as data features in the ML Data
 DEFAULT_TI_FEATURES = [{'ti': 'AccumulationDistributionLine', 'kwargs': {}},
