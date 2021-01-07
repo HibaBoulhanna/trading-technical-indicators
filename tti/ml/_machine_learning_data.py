@@ -13,7 +13,7 @@ from multiprocessing import Pool
 from ..indicators import *
 from ..utils.constants import DEFAULT_TI_FEATURES, ML_CLASSES
 from ..utils.exceptions import WrongValueForInputParameter, \
-    WrongTypeForInputParameter
+    WrongTypeForInputParameter, NotEnoughInputData
 from ..utils import fillMissingValues
 
 
@@ -21,19 +21,21 @@ class MachineLearningData:
     """
     Machine Learning Data class implementation. Creates ML data to be used for
     the ML model training. The columns are the signals from the chosen
-    technical indicators (``ti_features``). The labels are the price direction
-    between two data points (``price_diff_periods``). The possible values of
-    the features are ``-1`` for ``buy`` signal, ``0`` for ``hold`` signal and
-    ``1`` for ``sell`` signal. The possible values of the labels are ``0`` for
-    ``downward`` price direction or when price does not change, and ``1`` for
-    ``upward`` price direction.
+    technical indicators (``ti_features``), and the ``close`` price deltas for
+    the last five periods. The labels are the price direction between two data
+    points (``price_diff_periods``). The possible values of the features are
+    ``-1`` for ``buy`` signal, ``0`` for ``hold`` signal and ``1`` for ``sell``
+    signal. The possible values of the labels are ``0`` for ``downward`` price
+    direction or when price does not change, and ``1`` for ``upward`` price
+    direction.
 
     Args:
         input_data (pandas.DataFrame): The input data. Required input columns
             are dependent from the technical indicators which will be used as
             features (see ti_features argument). The largest column set is
             ``high``, ``low``, ``open``, ``close`` and ``volume``. The index is
-            of type ``pandas.DatetimeIndex``.
+            of type ``pandas.DatetimeIndex``. The ``close`` column is always
+            required.
 
         ti_features (list, default=DEFAULT_TI_FEATURES): List of indicators to
             be used as features for the ML data. The format of the list is
@@ -41,9 +43,9 @@ class MachineLearningData:
             ``DEFAULT_TI_FEATURES`` as usage example. The default value is to
             use all the 62 indicators.
 
-        price_diff_periods (int, default=1): The price periods distance for
-            which the price direction is evaluated. The default value is for
-            ``1`` period (i.e. 1 day).
+        price_diff_periods (int, default=1): The periods ahead for which the
+            price direction is evaluated. The default value is for ``1`` period
+            (i.e. 1 day).
 
         pool_size (int, default=None): Pool size of the processes used when
             calculating the features values for the ML Data. When None, then
@@ -92,9 +94,14 @@ class MachineLearningData:
         # Context added in the _validateInputArguments
         self._indicators_set = []
 
-        # Context is updated in crateMLData
-        self._ml_data = np.zeros(shape=(len(self._input_data.index),
-            len(self._ti_features) + 1), dtype=np.int)
+        # Context is updated in createMLData
+        # Columns are the ti_features, close price deltas for the last five
+        # periods, and the labels. Rows are same as the number of the input
+        # data, reduced by the number of the price deltas periods (5) and by
+        # the price ahead lookup period used.
+        self._ml_data = np.zeros(
+            shape=(len(self._input_data.index) - 5 - price_diff_periods,
+            len(self._ti_features) + 6), dtype=np.float64)
 
         # If fails, exception is raised
         self._validateInputArguments()
@@ -183,6 +190,13 @@ class MachineLearningData:
                 '[{\'ti\': \'indicator_class_name\', \'kwargs\': ' +
                 '{...}, ...]')
 
+        if len(self._input_data.index) - 5 - self._price_diff_periods <= 0:
+            raise NotEnoughInputData(
+                '', '> ' + str(5 + self._price_diff_periods),
+                len(self._input_data.index),
+                'Not enough input data. Minimum required data are '
+                '(<req_data_num>), but (<data_num>) found.')
+
         # Construct and validate the indicators set
         if self._verbose:
             print('\nIndicators set (ML data features)')
@@ -203,15 +217,35 @@ class MachineLearningData:
             numpy.ndarray: The created ML data.
         """
 
-        # Columns are the ti_features and the labels
-        self._ml_data = np.zeros(shape=(len(self._input_data.index) - 1,
-            len(self._ti_features) + 1), dtype=np.int)
+        # Add ti_features: Don't include last features rows (based on the price
+        # look ahead input), and first five rows due to price deltas
+        self._ml_data[:, :-6] = \
+            self._createMLDataFeatures()[5:-self._price_diff_periods, :]
 
-        # Don't include last features row
-        self._ml_data[:, :-1] = self._createMLDataFeatures()[:-1, :]
+        # Add price deltas
+        self._ml_data[:, -2] = (self._input_data['close'].values - np.roll(
+            a=self._input_data['close'].values, shift=5,
+            axis=0))[5:-self._price_diff_periods]
+
+        self._ml_data[:, -3] = (self._input_data['close'].values - np.roll(
+            a=self._input_data['close'].values, shift=4,
+            axis=0))[5:-self._price_diff_periods]
+
+        self._ml_data[:, -4] = (self._input_data['close'].values - np.roll(
+            a=self._input_data['close'].values, shift=3,
+            axis=0))[5:-self._price_diff_periods]
+
+        self._ml_data[:, -5] = (self._input_data['close'].values - np.roll(
+            a=self._input_data['close'].values, shift=2,
+            axis=0))[5:-self._price_diff_periods]
+
+        self._ml_data[:, -6] = (self._input_data['close'].values - np.roll(
+            a=self._input_data['close'].values, shift=1,
+            axis=0))[5:-self._price_diff_periods]
 
         # Don't include first labels row
-        self._ml_data[:, -1] = self._createMLDataLabels()[1:]
+        self._ml_data[:, -1] = \
+            self._createMLDataLabels()[5:-self._price_diff_periods]
 
         return self._ml_data
 
@@ -285,9 +319,10 @@ class MachineLearningData:
             input_data.
         """
 
-        labels = self._input_data['close'].values - np.roll(
-            a=self._input_data['close'].values, shift=self._price_diff_periods,
-            axis=0)
+        labels = np.roll(
+            a=self._input_data['close'].values,
+            shift=-self._price_diff_periods, axis=0
+        ) - self._input_data['close'].values
 
         labels[labels > 0] = ML_CLASSES['UP']
         labels[labels <= 0] = ML_CLASSES['DOWN']
@@ -313,7 +348,10 @@ class MachineLearningData:
 
             columns.append(indicator['ti'] + arguments)
 
+        columns += ['price_delta_' + str(i) for i in range(1, 6)]
+
         columns.append('labels')
 
-        pd.DataFrame(index=self._input_data.index[:-1], columns=columns,
-                     data=self._ml_data, dtype=np.int).to_csv(destination_file)
+        pd.DataFrame(index=self._input_data.index[5:-self._price_diff_periods],
+                     columns=columns, data=self._ml_data, dtype=np.float64
+                     ).to_csv(destination_file)
