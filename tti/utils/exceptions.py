@@ -71,3 +71,16 @@ class TtiPackageDeprecatedMethod(Exception):
         message += details
 
         super().__init__(message)
+
+
+class NoFeaturesSelectedForMLData(Exception):
+
+    def __init__(self, ti_features, include_close_feature,
+                 include_volume_feature):
+
+        message = 'No features selected for the ML data. ti_features = ' + \
+            str(ti_features) + ', include_close_feature = ' + \
+            str(include_close_feature) + ', include_volume_feature = ' + \
+            str(include_volume_feature)
+
+        super().__init__(message)
