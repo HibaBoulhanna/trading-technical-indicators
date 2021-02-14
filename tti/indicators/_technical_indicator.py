@@ -209,28 +209,39 @@ class TechnicalIndicator(ABC):
             (matplotlib.pyplot): The produced graph.
         """
 
+        x = list(range(1, len(simulation['stock_value']) + 1))
         plt.figure(figsize=(7, 5))
 
+        # Stock value subplot
         plt.subplot(3, 1, 1)
-        plt.plot(list(range(1, len(simulation['stock_value']) + 1)),
-            simulation['stock_value'], label='close_price', color='limegreen')
+        plt.plot(
+            x, simulation['stock_value'], label='close_price',
+            color='limegreen')
+        plt.fill_between(
+            x=x, y1=simulation['stock_value'].to_list(), facecolor='limegreen',
+            alpha=0.5)
         plt.legend(loc=0)
         plt.grid(which='major', axis='y', alpha=0.5)
         plt.title(title, fontsize=11, fontweight='bold')
         plt.gca().axes.get_xaxis().set_visible(False)
 
+        # Exposure subplot
         plt.subplot(3, 1, 2)
-        plt.plot(list(range(1, len(simulation['exposure']) + 1)),
-                 simulation['exposure'], label='exposure',
-                 color='tomato')
+        plt.plot(x, simulation['exposure'], label='exposure', color='tomato')
+        plt.fill_between(
+            x=x, y1=simulation['exposure'].to_list(), facecolor='tomato',
+            alpha=0.5)
         plt.legend(loc=0)
         plt.grid(which='major', axis='y', alpha=0.5)
         plt.gca().axes.get_xaxis().set_visible(False)
 
+        # Balance subplot
         plt.subplot(3, 1, 3)
-        plt.plot(list(range(1, len(simulation['balance']) + 1)),
-                 simulation['balance'], label='balance',
-                 color='cornflowerblue')
+        plt.plot(
+            x, simulation['balance'], label='balance', color='cornflowerblue')
+        plt.fill_between(
+            x=x, y1=simulation['balance'].to_list(),
+            facecolor='cornflowerblue', alpha=0.5)
         plt.legend(loc=0)
         plt.grid(which='major', axis='y', alpha=0.5)
 
