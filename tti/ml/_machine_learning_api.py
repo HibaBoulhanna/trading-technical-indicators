@@ -131,6 +131,9 @@ class MachineLearningAPI(ABC):
             include_volume_feature=True,
             verbose=False).createPredictionData().values[-1, :].reshape(1, -1)
 
+        if self._scaler is not None:
+            data = self._scaler.transform(X=dat)
+
         prediction = self._model.predict(X=data)
 
         for k, v in ML_CLASSES.items():
