@@ -16,6 +16,8 @@ from ..utils.exceptions import WrongTypeForInputParameter
 from ..utils.exceptions import NotEnoughInputData
 from ..utils.exceptions import NoFeaturesSelectedForMLData
 from ..utils.exceptions import InputDataMissingForMLData
+from ..utils.exceptions import NotEnoughDataForMachineLearningTraining
+from ..utils.exceptions import NotEnoughDataForMachineLearningPrediction
 from ..utils import fillMissingValues
 
 
@@ -57,11 +59,6 @@ class MachineLearningData:
             ``volume`` value from the input data should be included as a 
             feature in the produced ML data.
 
-        pool_size (int, default=None): Pool size of the processes used when
-            calculating the features values for the ML Data. When None, then
-            the created processes are equal to the number of the available cpu
-            cores.
-
         verbose (bool, default=False): If set to True, processing information
             is sent to the console.
 
@@ -72,17 +69,18 @@ class MachineLearningData:
         TypeError: Type error occurred when validating the ``input_data``.
         ValueError: Value error occurred when validating the ``input_data``.
         NoFeaturesSelectedForMLData: No features selected for ML data.
+        NotEnoughDataForMachineLearningTraining: Not enough data for ML.
+        NotEnoughDataForMachineLearningPrediction: Not enough data for ML.
     """
 
     def __init__(self, input_data, ti_features=ALL_TI_FEATURES, 
                  include_close_feature=False, include_volume_feature=False,
-                 pool_size=None, verbose=False):
+                 verbose=False):
 
         self._input_data = fillMissingValues(input_data=input_data)
         self._ti_features = ti_features
         self._include_close_feature = include_close_feature
         self._include_volume_feature = include_volume_feature
-        self._pool_size = pool_size
         self._verbose = verbose
 
         # Context added in the _validateInputArguments
@@ -96,6 +94,13 @@ class MachineLearningData:
         # close price and volume, and the labels. Rows are same as the number
         # of the input data, reduced by one (price direction calculation).
         self._ml_data = pd.DataFrame(
+            data=None, columns=[], index=self._input_data.index,
+            dtype=np.float64)
+
+        # Context is set in createPredictionData
+        # Columns are the values of the selected ti_features, optionally the
+        # close price and volume.
+        self._prediction_data = pd.DataFrame(
             data=None, columns=[], index=self._input_data.index,
             dtype=np.float64)
 
@@ -126,15 +131,6 @@ class MachineLearningData:
             raise WrongTypeForInputParameter(
                 type(self._include_volume_feature), 'include_volume_feature',
                 'bool')
-
-        if isinstance(self._pool_size, int):
-            if self._pool_size < 1:
-                raise WrongValueForInputParameter(
-                    self._pool_size, 'pool_size', '>0')
-
-        elif self._pool_size is not None:
-            raise WrongTypeForInputParameter(
-                type(self._pool_size), 'pool_size', 'int or None')
 
         # Make columns case insensitive
         self._input_data.columns = \
@@ -226,20 +222,30 @@ class MachineLearningData:
         Constructs data to be used for the ML model creation.
 
         Returns:
-            numpy.ndarray: The created ML data.
+            pandas.DataFrame: The created ML data.
+
+        Raises:
+            NotEnoughDataForMachineLearningTraining: Not enough data for ML.
         """
 
         if self._verbose:
             print('\nCreate ML Data')
 
+        # Minimum required number of input data for ML training under the
+        # current implemented setup.
+        if len(self._input_data.index) < 60:
+            raise NotEnoughDataForMachineLearningTraining(
+                len(self._input_data.index), 60)
+
         # Add features column
         for indicator, feature in zip(self._indicators_set, self._ti_features):
             feature_data = indicator.getTiData()
-
+            # Because there are some inf values
+            feature_data = feature_data.replace([np.inf, -np.inf], np.nan)
             if self._verbose:
                 print('- adding feature: ', feature['ti'], ', columns: ',
                       str([feature['ti'] + '_' + c
-                           for c in feature_data.columns]), sep = '')
+                           for c in feature_data.columns]), sep='')
 
             for c in feature_data.columns:
                 self._ml_data[feature['ti'] + '_' + c] = feature_data[[c]]
@@ -270,3 +276,49 @@ class MachineLearningData:
         self._ml_data = fillMissingValues(input_data=self._ml_data)
 
         return self._ml_data
+
+    def createPredictionData(self):
+        """
+        Constructs data to be used in model prediction (input features).
+
+        Returns:
+            pandas.DataFrame: The created input features data.
+
+        Raises:
+            NotEnoughDataForMachineLearningPrediction: Not enough data for ML.
+        """
+
+        if self._verbose:
+            print('\nCreate Prediction (Input Features) Data')
+
+        # Minimum required number of input data for ML prediction under the
+        # current implemented setup.
+        if len(self._input_data.index) < 60:
+            raise NotEnoughDataForMachineLearningPrediction(
+                len(self._input_data.index), 60)
+
+        # Add features column
+        for indicator, feature in zip(self._indicators_set, self._ti_features):
+            feature_data = indicator.getTiData()
+            # Because there are some inf values
+            feature_data = feature_data.replace([np.inf, -np.inf], np.nan)
+            if self._verbose:
+                print('- adding feature: ', feature['ti'], ', columns: ',
+                      str([feature['ti'] + '_' + c
+                           for c in feature_data.columns]), sep='')
+
+            for c in feature_data.columns:
+                self._prediction_data[
+                    feature['ti'] + '_' + c] = feature_data[[c]]
+
+        if self._include_close_feature:
+            self._prediction_data['close'] = self._input_data[['close']]
+
+        if self._include_volume_feature:
+            self._prediction_data['volume'] = self._input_data[['volume']]
+
+        # Fill missing values
+        self._prediction_data = fillMissingValues(
+            input_data=self._prediction_data)
+
+        return self._prediction_data
