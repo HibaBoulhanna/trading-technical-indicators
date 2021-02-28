@@ -116,3 +116,12 @@ class NotEnoughDataForMachineLearningPrediction(Exception):
             '` but `' + str(input_data_length) + '` were given.'
 
         super().__init__(message)
+
+
+class ModelTrainingIsNotSupported(Exception):
+
+    def __init__(self):
+
+        message = 'ML model training is not supported for loaded models.'
+
+        super().__init__(message)
