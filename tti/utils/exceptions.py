@@ -84,3 +84,35 @@ class NoFeaturesSelectedForMLData(Exception):
             str(include_volume_feature)
 
         super().__init__(message)
+
+
+class InputDataMissingForMLData(Exception):
+
+    def __init__(self, column_name):
+
+        message = 'Required column `' + column_name + '` is missing from ' + \
+                  'the input data.'
+
+        super().__init__(message)
+
+
+class NotEnoughDataForMachineLearningTraining(Exception):
+
+    def __init__(self, input_data_length, required_data_length):
+
+        message = 'Not enough input data for Machine Learning training. ' + \
+            'Required data length is `' + str(required_data_length) + \
+            '` but `' + str(input_data_length) + '` were given.'
+
+        super().__init__(message)
+
+
+class NotEnoughDataForMachineLearningPrediction(Exception):
+
+    def __init__(self, input_data_length, required_data_length):
+
+        message = 'Not enough input data for Machine Learning prediction. ' + \
+            'Required data length is `' + str(required_data_length) + \
+            '` but `' + str(input_data_length) + '` were given.'
+
+        super().__init__(message)
