@@ -132,7 +132,7 @@ class MachineLearningAPI(ABC):
             verbose=False).createPredictionData().values[-1, :].reshape(1, -1)
 
         if self._scaler is not None:
-            data = self._scaler.transform(X=dat)
+            data = self._scaler.transform(X=data)
 
         prediction = self._model.predict(X=data)
 
