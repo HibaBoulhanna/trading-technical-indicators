@@ -129,7 +129,7 @@ class MachineLearningAPI(ABC):
             ti_features=ALL_TI_FEATURES,
             include_close_feature=True,
             include_volume_feature=True,
-            verbose=True).createPredictionData().values[-1, :].reshape(1, -1)
+            verbose=False).createPredictionData().values[-1, :].reshape(1, -1)
 
         prediction = self._model.predict(X=data)
 
