@@ -1,10 +1,10 @@
 # trading-technical-indicators (tti)
-**Trading Technical Indicators python library, where Traditional Technical Analysis and AI are met. Version 0.2.2 (stable release)**
+**Trading Technical Indicators python library, where Traditional Technical Analysis and AI are met. Version 1.0.0**
 - Calculate technical indicators (62 indicators supported).
 - Produce graphs for any technical indicator.
 - Get trading signals for each indicator.
 - Trading simulation based on trading signals.
-- Machine Learning integration for prices prediction (not included in this release).
+- Machine Learning integration for prices prediction.
 
 *Implementation based on the book 'Technical Analysis from A to Z, Steven B. Achelis'. Validation based on the 'A to Z Companion Spreadsheet, Steven B. Achelis and Jon C. DeBry'*
 
@@ -14,6 +14,7 @@ API documentation and installation instructions can be found in the project's we
 **Change Log**
 
 *Stable Releases*
+- 1.0.0: Full featured release, including machine learning related features. Other updates and fixes included ([#27](https://github.com/vsaveris/trading-technical-indicators/issues/27), [#29](https://github.com/vsaveris/trading-technical-indicators/issues/29), [#26](https://github.com/vsaveris/trading-technical-indicators/issues/26), [#36](https://github.com/vsaveris/trading-technical-indicators/issues/36))
 - 0.2.2: Incompatibilities with the latest pandas release 1.2.0 fixed ([#20](https://github.com/vsaveris/trading-technical-indicators/issues/20))
 - 0.2.1: Bug fixes, new pandas release causes an exception in some indicators calculation ([#20](https://github.com/vsaveris/trading-technical-indicators/issues/20))
 - 0.2.0: First stable release, updates described in the following github issues ([#2](https://github.com/vsaveris/trading-technical-indicators/issues/2), [#3](https://github.com/vsaveris/trading-technical-indicators/issues/3), [#14](https://github.com/vsaveris/trading-technical-indicators/issues/14), [#15](https://github.com/vsaveris/trading-technical-indicators/issues/15))
@@ -23,9 +24,6 @@ API documentation and installation instructions can be found in the project's we
 - 0.1.b2: Bugs fixes ([#1](https://github.com/vsaveris/trading-technical-indicators/issues/1))
 - 0.1.b1: Cosmetic changes in package building file applied (setup.py)
 - 0.1.b0: First beta release
-
-*Planned Releases*
-- 1.0.0: Full featured release, including machine learning related features (*planned for 01.03.2021*).
 
 **Indicators supported**
 - Accumulation Distribution Line
