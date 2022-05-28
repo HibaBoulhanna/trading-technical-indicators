@@ -7,9 +7,11 @@ File name: _moving_average_convergence_divergence.py
 
 import pandas as pd
 
-from ._technical_indicator import TechnicalIndicator
-from ..utils.constants import TRADE_SIGNALS
-from ..utils.exceptions import NotEnoughInputData
+from _technical_indicator_macd import TechnicalIndicator
+import os, sys
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+from utils.constants import TRADE_SIGNALS
+from utils.exceptions import NotEnoughInputData
 
 
 class MovingAverageConvergenceDivergence(TechnicalIndicator):
@@ -49,7 +51,7 @@ class MovingAverageConvergenceDivergence(TechnicalIndicator):
                          input_data=input_data,
                          fill_missing_values=fill_missing_values)
 
-    def _calculateTi(self):
+    def _calculateTi(self,wl,ws):
         """
         Calculates the technical indicator for the given input data. The input
         data are taken from an attribute of the parent class.
@@ -63,18 +65,19 @@ class MovingAverageConvergenceDivergence(TechnicalIndicator):
             NotEnoughInputData: Not enough data for calculating the indicator.
         """
 
+
         # Not enough data, 26 periods are required
         if len(self._input_data.index) < 26:
             raise NotEnoughInputData('Moving Average Convergence Divergence',
                                      26, len(self._input_data.index))
 
         # Calculate Exponential Moving Average for 26 periods
-        ema_26 = self._input_data.ewm(span=26, min_periods=26, adjust=False,
-                                      axis=0).mean().round(4)
+        ema_26 = self._input_data.ewm(span=wl, min_periods=wl, adjust=False,
+                                      axis=0).mean()
 
         # Calculate Exponential Moving Average for 12 periods
-        ema_12 = self._input_data.ewm(span=12, min_periods=12, adjust=False,
-                                      axis=0).mean().round(4)
+        ema_12 = self._input_data.ewm(span=ws, min_periods=ws, adjust=False,
+                                      axis=0).mean()
 
         # Calculate MACD
         macd = ema_12 - ema_26
