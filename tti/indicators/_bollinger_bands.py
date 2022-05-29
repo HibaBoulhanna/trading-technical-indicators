@@ -6,10 +6,11 @@ File name: _bollinger_bands.py
 """
 
 import pandas as pd
-
-from ._technical_indicator import TechnicalIndicator
-from ..utils.constants import TRADE_SIGNALS
-from ..utils.exceptions import NotEnoughInputData, WrongTypeForInputParameter,\
+import os, sys
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+from _technical_indicator import TechnicalIndicator
+from utils.constants import TRADE_SIGNALS
+from utils.exceptions import NotEnoughInputData, WrongTypeForInputParameter,\
     WrongValueForInputParameter
 
 
@@ -48,9 +49,9 @@ class BollingerBands(TechnicalIndicator):
         TypeError: Type error occurred when validating the ``input_data``.
         ValueError: Value error occurred when validating the ``input_data``.
     """
-    def __init__(self, input_data, period=20, std_number=2,
+    def __init__(self, input_data, period, std_number,
                  fill_missing_values=True):
-
+        """
         # Validate and store if needed, the input parameters
         if isinstance(period, int):
             if period > 0:
@@ -71,13 +72,14 @@ class BollingerBands(TechnicalIndicator):
         else:
             raise WrongTypeForInputParameter(
                 type(std_number), 'std_number', 'int or float')
+        """
 
         # Control is passing to the parent class
         super().__init__(calling_instance=self.__class__.__name__,
                          input_data=input_data,
                          fill_missing_values=fill_missing_values)
 
-    def _calculateTi(self):
+    def _calculateTi(self,period,std_number):
         """
         Calculates the technical indicator for the given input data. The input
         data are taken from an attribute of the parent class.
@@ -92,23 +94,23 @@ class BollingerBands(TechnicalIndicator):
         """
 
         # Not enough data for the requested period
-        if len(self._input_data.index) < self._period:
-            raise NotEnoughInputData('Bollinger Bands', self._period,
+        if len(self._input_data.index) < period:
+            raise NotEnoughInputData('Bollinger Bands', period,
                                      len(self._input_data.index))
 
         # Calculate the Middle Band using Simple Moving Average
         bb = self._input_data.rolling(
-            window=self._period, min_periods=self._period, center=False,
-            win_type=None, on=None, axis=0, closed=None).mean().round(4)
+            window=period, min_periods=period, center=False,
+            win_type=None, on=None, axis=0, closed=None).mean()
 
         # Calculate Upper and Lower Bands
         standard_deviation = self._input_data.rolling(
-            window=self._period, min_periods=self._period, center=False,
+            window=period, min_periods=period, center=False,
             win_type=None, on=None, axis=0, closed=None).std(ddof=0)
 
         bb = pd.concat([bb,
-                        round(bb + standard_deviation * self._std_number, 4),
-                        round(bb - standard_deviation * self._std_number, 4)],
+                        round(bb + standard_deviation * std_number, 4),
+                        round(bb - standard_deviation * std_number, 4)],
                        axis=1)
 
         bb.columns = ['middle_band', 'upper_band', 'lower_band']

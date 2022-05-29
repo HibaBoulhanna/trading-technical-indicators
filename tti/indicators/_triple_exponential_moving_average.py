@@ -6,10 +6,11 @@ File name: _triple_exponential_moving_average.py
 """
 
 import pandas as pd
-
-from ._technical_indicator import TechnicalIndicator
-from ..utils.constants import TRADE_SIGNALS
-from ..utils.exceptions import NotEnoughInputData, WrongTypeForInputParameter,\
+import os, sys
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+from _technical_indicator import TechnicalIndicator
+from utils.constants import TRADE_SIGNALS
+from utils.exceptions import NotEnoughInputData, WrongTypeForInputParameter,\
     WrongValueForInputParameter
 
 
@@ -44,8 +45,8 @@ class TripleExponentialMovingAverage(TechnicalIndicator):
         TypeError: Type error occurred when validating the ``input_data``.
         ValueError: Value error occurred when validating the ``input_data``.
     """
-    def __init__(self, input_data, period=5, fill_missing_values=True):
-
+    def __init__(self, input_data,fill_missing_values=True):
+       """
         # Validate and store if needed, the input parameters
         if isinstance(period, int):
             if period > 0:
@@ -56,13 +57,13 @@ class TripleExponentialMovingAverage(TechnicalIndicator):
         else:
             raise WrongTypeForInputParameter(
                 type(period), 'period', 'int')
-
+        """
         # Control is passing to the parent class
         super().__init__(calling_instance=self.__class__.__name__,
                          input_data=input_data,
                          fill_missing_values=fill_missing_values)
 
-    def _calculateTi(self):
+    def _calculateTi(self,period):
         """
         Calculates the technical indicator for the given input data. The input
         data are taken from an attribute of the parent class.
@@ -85,22 +86,22 @@ class TripleExponentialMovingAverage(TechnicalIndicator):
 
         # Exponential moving average of prices
         ema = self._input_data.ewm(
-            span=self._period, min_periods=self._period, adjust=False, axis=0
+            span=period, min_periods=period, adjust=False, axis=0
         ).mean()
 
         # Double Exponential moving average of prices
         double_ema = ema.ewm(
-            span=self._period, min_periods=self._period, adjust=False,
+            span=period, min_periods=period, adjust=False,
             axis=0).mean()
 
         # Triple Exponential moving average of prices
         triple_ema = double_ema.ewm(
-            span=self._period, min_periods=self._period, adjust=False,
+            span=period, min_periods=period, adjust=False,
             axis=0).mean()
 
         tema['tema'] = (3 * ema) - (3 * double_ema) + triple_ema
 
-        return tema.round(4)
+        return tema
 
     def getTiSignal(self):
         """

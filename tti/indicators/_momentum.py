@@ -6,10 +6,11 @@ File name: _momentum.py
 """
 
 import pandas as pd
-
-from ._technical_indicator import TechnicalIndicator
-from ..utils.constants import TRADE_SIGNALS
-from ..utils.exceptions import NotEnoughInputData, WrongTypeForInputParameter,\
+import os, sys
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+from _technical_indicator import TechnicalIndicator
+from utils.constants import TRADE_SIGNALS
+from utils.exceptions import NotEnoughInputData, WrongTypeForInputParameter,\
     WrongValueForInputParameter
 
 
@@ -44,8 +45,8 @@ class Momentum(TechnicalIndicator):
         TypeError: Type error occurred when validating the ``input_data``.
         ValueError: Value error occurred when validating the ``input_data``.
     """
-    def __init__(self, input_data, period=12, fill_missing_values=True):
-
+    def __init__(self, input_data, period, fill_missing_values=True):
+      """
         # Validate and store if needed, the input parameters
         if isinstance(period, int):
             if period > 0:
@@ -56,13 +57,13 @@ class Momentum(TechnicalIndicator):
         else:
             raise WrongTypeForInputParameter(
                 type(period), 'period', 'int')
-
+       """
         # Control is passing to the parent class
         super().__init__(calling_instance=self.__class__.__name__,
                          input_data=input_data,
                          fill_missing_values=fill_missing_values)
 
-    def _calculateTi(self):
+    def _calculateTi(self,period):
         """
         Calculates the technical indicator for the given input data. The input
         data are taken from an attribute of the parent class.
@@ -76,18 +77,18 @@ class Momentum(TechnicalIndicator):
         """
 
         # Not enough data for the requested period
-        if len(self._input_data.index) < self._period:
-            raise NotEnoughInputData('Momentum', self._period,
+        if len(self._input_data.index) < period:
+            raise NotEnoughInputData('Momentum', period,
                                      len(self._input_data.index))
 
         mom = pd.DataFrame(index=self._input_data.index, columns=['mom'],
                            data=None, dtype='float64')
 
-        mom['mom'].iloc[self._period:] = \
-            100. * self._input_data['close'].iloc[self._period:] / \
-            self._input_data['close'].shift(self._period).iloc[self._period:]
+        mom['mom'].iloc[period:] = \
+            100. * self._input_data['close'].iloc[period:] / \
+            self._input_data['close'].shift(period).iloc[period:]
 
-        return mom.round(4)
+        return mom
 
     def getTiSignal(self):
         """

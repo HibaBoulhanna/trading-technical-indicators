@@ -7,9 +7,9 @@ File name: _positive_volume_index.py
 
 import pandas as pd
 
-from ._technical_indicator import TechnicalIndicator
-from ..utils.constants import TRADE_SIGNALS
-from ..utils.exceptions import NotEnoughInputData
+from _technical_indicator import TechnicalIndicator
+from utils.constants import TRADE_SIGNALS
+from utils.exceptions import NotEnoughInputData
 
 
 class PositiveVolumeIndex(TechnicalIndicator):
@@ -84,7 +84,7 @@ class PositiveVolumeIndex(TechnicalIndicator):
             else:
                 pvi['pvi'].iat[i] = pvi['pvi'].iat[i - 1]
 
-        return pvi.round(4)
+        return pvi
 
     def getTiSignal(self):
         """

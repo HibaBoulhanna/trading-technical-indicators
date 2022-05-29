@@ -45,8 +45,8 @@ class RelativeStrengthIndex(TechnicalIndicator):
         TypeError: Type error occurred when validating the ``input_data``.
         ValueError: Value error occurred when validating the ``input_data``.
     """
-    def __init__(self, input_data, period, fill_missing_values=True):
-
+    def __init__(self, input_data, fill_missing_values=True):
+        """
         # Validate and store if needed, the input parameters
         if isinstance(period, int):
             if period > 0:
@@ -57,13 +57,13 @@ class RelativeStrengthIndex(TechnicalIndicator):
         else:
             raise WrongTypeForInputParameter(
                 type(period), 'period', 'int')
-
+       """
         # Control is passing to the parent class
         super().__init__(calling_instance=self.__class__.__name__,
                          input_data=input_data,
                          fill_missing_values=fill_missing_values)
 
-    def _calculateTi(self):
+    def _calculateTi(self,period):
         """
         Calculates the technical indicator for the given input data. The input
         data are taken from an attribute of the parent class.
@@ -77,9 +77,9 @@ class RelativeStrengthIndex(TechnicalIndicator):
         """
 
         # Not enough data for the requested period
-        if len(self._input_data.index) < self._period + 1:
+        if len(self._input_data.index) < period + 1:
             raise NotEnoughInputData('Relative Strength Index',
-                                     self._period + 1,
+                                     period + 1,
                                      len(self._input_data.index))
 
         rsi = pd.DataFrame(data=None, index=self._input_data.index,
@@ -95,14 +95,14 @@ class RelativeStrengthIndex(TechnicalIndicator):
                     self._input_data['close'].values[i] >
                     self._input_data['close'].values[i - 1] else 0.0, 4)
 
-        upc['smoothed_upc'].iat[self._period] = \
-            upc['upc'].iloc[:self._period + 1].mean()
+        upc['smoothed_upc'].iat[period] = \
+            upc['upc'].iloc[:period + 1].mean()
 
-        for i in range(self._period + 1, len(self._input_data.index)):
+        for i in range(period + 1, len(self._input_data.index)):
             upc['smoothed_upc'].values[i] = round(
                 upc['smoothed_upc'].values[i - 1] +
                 (upc['upc'].values[i] - upc['smoothed_upc'].values[i - 1]
-                 ) / self._period, 4)
+                 ) / period, 4)
 
         # Calculate Downward Price Change
         dpc = pd.DataFrame(data=None, index=self._input_data.index,
@@ -115,14 +115,14 @@ class RelativeStrengthIndex(TechnicalIndicator):
                 self._input_data['close'].values[i] <
                 self._input_data['close'].values[i - 1] else 0.0, 4)
 
-        dpc['smoothed_dpc'].iat[self._period] = \
-            dpc['dpc'].iloc[:self._period + 1].mean()
+        dpc['smoothed_dpc'].iat[period] = \
+            dpc['dpc'].iloc[:period + 1].mean()
 
-        for i in range(self._period + 1, len(self._input_data.index)):
+        for i in range(period + 1, len(self._input_data.index)):
             dpc['smoothed_dpc'].values[i] = round(
                 dpc['smoothed_dpc'].values[i - 1] +
                 (dpc['dpc'].values[i] - dpc['smoothed_dpc'].values[i - 1]
-                 ) / self._period, 4)
+                 ) / period, 4)
 
         rsi['rsi'] = \
             100.0 - \

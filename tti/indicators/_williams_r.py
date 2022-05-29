@@ -7,10 +7,11 @@ File name: _williams_r.py
 
 import pandas as pd
 import numpy as np
-
-from ._technical_indicator import TechnicalIndicator
-from ..utils.constants import TRADE_SIGNALS
-from ..utils.exceptions import NotEnoughInputData, WrongTypeForInputParameter,\
+import os, sys
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+from _technical_indicator import TechnicalIndicator
+from utils.constants import TRADE_SIGNALS
+from utils.exceptions import NotEnoughInputData, WrongTypeForInputParameter,\
     WrongValueForInputParameter
 
 
@@ -46,8 +47,8 @@ class WilliamsR(TechnicalIndicator):
         TypeError: Type error occurred when validating the ``input_data``.
         ValueError: Value error occurred when validating the ``input_data``.
     """
-    def __init__(self, input_data, period=5, fill_missing_values=True):
-
+    def __init__(self, input_data,fill_missing_values=True):
+        """
         # Validate and store if needed, the input parameters
         if isinstance(period, int):
             if period > 0:
@@ -58,13 +59,13 @@ class WilliamsR(TechnicalIndicator):
         else:
             raise WrongTypeForInputParameter(
                 type(period), 'period', 'int')
-
+        """
         # Control is passing to the parent class
         super().__init__(calling_instance=self.__class__.__name__,
                          input_data=input_data,
                          fill_missing_values=fill_missing_values)
 
-    def _calculateTi(self):
+    def _calculateTi(self,period):
         """
         Calculates the technical indicator for the given input data. The input
         data are taken from an attribute of the parent class.
@@ -78,7 +79,7 @@ class WilliamsR(TechnicalIndicator):
         """
 
         # Not enough data for the requested period
-        if len(self._input_data.index) < self._period:
+        if len(self._input_data.index) < period:
             raise NotEnoughInputData('William\'s %R', self._period,
                                      len(self._input_data.index))
 
@@ -86,17 +87,17 @@ class WilliamsR(TechnicalIndicator):
                           data=None, dtype='float64')
 
         wr['highest_high'] = self._input_data['high'].rolling(
-            window=self._period, min_periods=self._period, center=False,
+            window=period, min_periods=period, center=False,
             win_type=None, on=None, axis=0, closed=None).max()
 
         wr['lowest_low'] = self._input_data['low'].rolling(
-            window=self._period, min_periods=self._period, center=False,
+            window=period, min_periods=period, center=False,
             win_type=None, on=None, axis=0, closed=None).min()
 
         wr['wr'] = -100 * ((wr['highest_high'] - self._input_data['close']) /
                            (wr['highest_high'] - wr['lowest_low']))
 
-        return wr[['wr']].round(4)
+        return wr[['wr']]
 
     def getTiSignal(self):
         """

@@ -6,10 +6,11 @@ File name: _negative_volume_index.py
 """
 
 import pandas as pd
-
-from ._technical_indicator import TechnicalIndicator
-from ..utils.constants import TRADE_SIGNALS
-from ..utils.exceptions import NotEnoughInputData
+import os, sys
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+from _technical_indicator import TechnicalIndicator
+from utils.constants import TRADE_SIGNALS
+from utils.exceptions import NotEnoughInputData
 
 
 class NegativeVolumeIndex(TechnicalIndicator):
@@ -84,7 +85,7 @@ class NegativeVolumeIndex(TechnicalIndicator):
             else:
                 nvi['nvi'].iat[i] = nvi['nvi'].iat[i - 1]
 
-        return nvi.round(4)
+        return nvi.
 
     def getTiSignal(self):
         """

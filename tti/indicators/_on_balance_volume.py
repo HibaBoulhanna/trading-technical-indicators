@@ -6,9 +6,10 @@ File name: _on_balance_volume.py
 """
 
 import pandas as pd
-
-from ._technical_indicator import TechnicalIndicator
-from ..utils.constants import TRADE_SIGNALS
+import os, sys
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+from _technical_indicator import TechnicalIndicator
+from utils.constants import TRADE_SIGNALS
 
 
 class OnBalanceVolume(TechnicalIndicator):
