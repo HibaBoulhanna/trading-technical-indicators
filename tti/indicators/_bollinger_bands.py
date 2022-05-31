@@ -8,7 +8,7 @@ File name: _bollinger_bands.py
 import pandas as pd
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-from _technical_indicator import TechnicalIndicator
+from _technical_indicator_BB import TechnicalIndicator
 from utils.constants import TRADE_SIGNALS
 from utils.exceptions import NotEnoughInputData, WrongTypeForInputParameter,\
     WrongValueForInputParameter
@@ -49,8 +49,7 @@ class BollingerBands(TechnicalIndicator):
         TypeError: Type error occurred when validating the ``input_data``.
         ValueError: Value error occurred when validating the ``input_data``.
     """
-    def __init__(self, input_data, period, std_number,
-                 fill_missing_values=True):
+    def __init__(self, input_data,fill_missing_values=True):
         """
         # Validate and store if needed, the input parameters
         if isinstance(period, int):

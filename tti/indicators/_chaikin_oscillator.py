@@ -6,11 +6,12 @@ File name: _chaikin_oscillator.py
 """
 
 import pandas as pd
-
-from ._technical_indicator import TechnicalIndicator
-from ._accumulation_distribution_line import AccumulationDistributionLine
-from ..utils.constants import TRADE_SIGNALS
-from ..utils.exceptions import NotEnoughInputData
+import os, sys
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
+from _technical_indicator_cho import TechnicalIndicator
+#from _accumulation_distribution_line import AccumulationDistributionLine
+from utils.constants import TRADE_SIGNALS
+from utils.exceptions import NotEnoughInputData
 
 
 class ChaikinOscillator(TechnicalIndicator):
@@ -49,7 +50,7 @@ class ChaikinOscillator(TechnicalIndicator):
                          input_data=input_data,
                          fill_missing_values=fill_missing_values)
 
-    def _calculateTi(self):
+    def _calculateTi(self,ws,wl):
         """
         Calculates the technical indicator for the given input data. The input
         data are taken from an attribute of the parent class.
@@ -61,6 +62,16 @@ class ChaikinOscillator(TechnicalIndicator):
         Raises:
             NotEnoughInputData: Not enough data for calculating the indicator.
         """
+        adl = pd.DataFrame(index=self._input_data.index, columns=['adl'],
+                           data=0, dtype='int64')
+
+        adl['adl'] = self._input_data['Volume'] * (
+                (self._input_data['Close'] - self._input_data['Low']) -
+                (self._input_data['High'] - self._input_data['Close'])
+        ) / (self._input_data['High'] - self._input_data['Low'])
+
+        adl = adl.cumsum(axis=0)
+        
 
         # Not enough data for the requested period
         if len(self._input_data.index) < 10:
@@ -70,13 +81,13 @@ class ChaikinOscillator(TechnicalIndicator):
         co = pd.DataFrame(index=self._input_data.index, columns=['co'],
                           data=0, dtype='float64')
 
-        adl = AccumulationDistributionLine(self._input_data).getTiData()
+        #adl = AccumulationDistributionLine(self._input_data).getTiData()
 
         co['co'] = \
-            adl.ewm(span=3, min_periods=3, adjust=False, axis=0).mean() - \
-            adl.ewm(span=10, min_periods=10, adjust=False, axis=0).mean()
+            adl.ewm(span=ws, min_periods=ws, adjust=False, axis=0).mean() - \
+            adl.ewm(span=wl, min_periods=wl, adjust=False, axis=0).mean()
 
-        return co.round(4)
+        return co
 
     def getTiSignal(self):
         """

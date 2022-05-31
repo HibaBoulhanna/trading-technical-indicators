@@ -8,7 +8,7 @@ File name: _negative_volume_index.py
 import pandas as pd
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-from _technical_indicator import TechnicalIndicator
+from _technical_indicator_nvi import TechnicalIndicator
 from utils.constants import TRADE_SIGNALS
 from utils.exceptions import NotEnoughInputData
 
@@ -49,7 +49,7 @@ class NegativeVolumeIndex(TechnicalIndicator):
                          input_data=input_data,
                          fill_missing_values=fill_missing_values)
 
-    def _calculateTi(self):
+    def _calculateTi(self,period):
         """
         Calculates the technical indicator for the given input data. The input
         data are taken from an attribute of the parent class.
@@ -84,8 +84,14 @@ class NegativeVolumeIndex(TechnicalIndicator):
                             self._input_data['close'].iat[i - 1])
             else:
                 nvi['nvi'].iat[i] = nvi['nvi'].iat[i - 1]
+        NVI = nvi['nvi'].ewm(span=period, min_periods=period, adjust=False,
+                                       axis=0).mean()
+        #NVI=pd.DataFrame()
+        NVI=pd.DataFrame({'Date':NVI.index, 'NVI':NVI.values})
+        
+        return NVI
 
-        return nvi.
+     
 
     def getTiSignal(self):
         """
