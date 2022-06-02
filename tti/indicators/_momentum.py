@@ -8,7 +8,7 @@ File name: _momentum.py
 import pandas as pd
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-from _technical_indicator import TechnicalIndicator
+from _technical_indicator_mom import TechnicalIndicator
 from utils.constants import TRADE_SIGNALS
 from utils.exceptions import NotEnoughInputData, WrongTypeForInputParameter,\
     WrongValueForInputParameter
@@ -45,25 +45,12 @@ class Momentum(TechnicalIndicator):
         TypeError: Type error occurred when validating the ``input_data``.
         ValueError: Value error occurred when validating the ``input_data``.
     """
-    def __init__(self, input_data, period, fill_missing_values=True):
-      """
-        # Validate and store if needed, the input parameters
-        if isinstance(period, int):
-            if period > 0:
-                self._period = period
-            else:
-                raise WrongValueForInputParameter(
-                    period, 'period', '>0')
-        else:
-            raise WrongTypeForInputParameter(
-                type(period), 'period', 'int')
-       """
+    def __init__(self, input_data,fill_missing_values=True):
+    
         # Control is passing to the parent class
-        super().__init__(calling_instance=self.__class__.__name__,
-                         input_data=input_data,
-                         fill_missing_values=fill_missing_values)
+        super().__init__(calling_instance=self.__class__.__name__,input_data=input_data,fill_missing_values=fill_missing_values)
 
-    def _calculateTi(self,period):
+    def _calculateTi(self,period,wsig=9):
         """
         Calculates the technical indicator for the given input data. The input
         data are taken from an attribute of the parent class.
@@ -74,8 +61,23 @@ class Momentum(TechnicalIndicator):
 
         Raises:
             NotEnoughInputData: Not enough data for calculating the indicator.
+            
         """
+        """
+        Momentum
+          Paramètre: df: le  vecteur des prix
+                      w: ordre
+                      wsig ; ordre de signal ligne
+          Retour:   Momentume (pndas.DataFrame)
+        """
+        MOM=pd.Series(self._input_data.diff(period),name="MOM")
+        MOMsignal=pd.Series(MOM.rolling(wsig, min_periods=wsig).mean(), name= "MOMsignal")
+        df=pd.DataFrame(df)
+        df=df.join(MOM)
+        df=df.join(MOMsignal)
+        return df
 
+        """
         # Not enough data for the requested period
         if len(self._input_data.index) < period:
             raise NotEnoughInputData('Momentum', period,
@@ -89,8 +91,10 @@ class Momentum(TechnicalIndicator):
             self._input_data['close'].shift(period).iloc[period:]
 
         return mom
+        """
 
     def getTiSignal(self):
+    
         """
         Calculates and returns the trading signal for the calculated technical
         indicator.

@@ -8,7 +8,7 @@ File name: _triple_exponential_moving_average.py
 import pandas as pd
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-from _technical_indicator import TechnicalIndicator
+from _technical_indicator_MM3 import TechnicalIndicator
 from utils.constants import TRADE_SIGNALS
 from utils.exceptions import NotEnoughInputData, WrongTypeForInputParameter,\
     WrongValueForInputParameter

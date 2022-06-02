@@ -6,6 +6,7 @@ File name: _relative_strength_index.py
 """
 
 import pandas as pd
+import numpy as np 
 import os, sys
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 from _technical_indicator_rsi import TechnicalIndicator
@@ -65,71 +66,29 @@ class RelativeStrengthIndex(TechnicalIndicator):
 
     def _calculateTi(self,period):
         """
-        Calculates the technical indicator for the given input data. The input
-        data are taken from an attribute of the parent class.
+         Relative Strength index
+          :Paramètre:
+           df: pandas.DataFrame
+           n : ordre
+          :return:
+           pandas.DataFrame
 
-        Returns:
-            pandas.DataFrame: The calculated indicator. Index is of type
-            ``pandas.DatetimeIndex``. It contains one column ``rsi``.
-
-        Raises:
-            NotEnoughInputData: Not enough data for calculating the indicator.
         """
-
-        # Not enough data for the requested period
-        if len(self._input_data.index) < period + 1:
-            raise NotEnoughInputData('Relative Strength Index',
-                                     period + 1,
-                                     len(self._input_data.index))
-
-        rsi = pd.DataFrame(data=None, index=self._input_data.index,
-                           columns=['rsi'], dtype='float64')
-
-        # Calculate Upward Price Change
-        upc = pd.DataFrame(data=None, index=self._input_data.index,
-                           columns=['upc', 'smoothed_upc'])
-
-        for i in range(1, len(self._input_data.index)):
-            upc['upc'].values[i] = round(self._input_data['close'].values[i] -
-                self._input_data['close'].values[i - 1] if
-                    self._input_data['close'].values[i] >
-                    self._input_data['close'].values[i - 1] else 0.0, 4)
-
-        upc['smoothed_upc'].iat[period] = \
-            upc['upc'].iloc[:period + 1].mean()
-
-        for i in range(period + 1, len(self._input_data.index)):
-            upc['smoothed_upc'].values[i] = round(
-                upc['smoothed_upc'].values[i - 1] +
-                (upc['upc'].values[i] - upc['smoothed_upc'].values[i - 1]
-                 ) / period, 4)
-
-        # Calculate Downward Price Change
-        dpc = pd.DataFrame(data=None, index=self._input_data.index,
-                           columns=['dpc', 'smoothed_dpc'])
-
-        for i in range(1, len(self._input_data.index)):
-            dpc['dpc'].values[i] = round(
-                self._input_data['close'].values[i - 1] -
-                self._input_data['close'].values[i] if
-                self._input_data['close'].values[i] <
-                self._input_data['close'].values[i - 1] else 0.0, 4)
-
-        dpc['smoothed_dpc'].iat[period] = \
-            dpc['dpc'].iloc[:period + 1].mean()
-
-        for i in range(period + 1, len(self._input_data.index)):
-            dpc['smoothed_dpc'].values[i] = round(
-                dpc['smoothed_dpc'].values[i - 1] +
-                (dpc['dpc'].values[i] - dpc['smoothed_dpc'].values[i - 1]
-                 ) / period, 4)
-
-        rsi['rsi'] = \
-            100.0 - \
-            (100.0 / ((upc['smoothed_upc'] / dpc['smoothed_dpc']) + 1.0))
-
-        return rsi.astype('float64').round(4)
-
+        diff=self._input_data.diff(1)
+        t=[]
+        for i in diff.values :
+            if i > 0:
+                t.append(i)
+            else :
+                t.append(0)
+        pos=pd.DataFrame(t,index=self._input_data.index)
+        diff=np.abs(pd.DataFrame(diff))
+        RSI=pos.rolling(period,min_periods=period).sum()/np.array((diff.rolling(period,min_periods=period).sum()))
+        df=pd.DataFrame(self._input_data)
+        df=df.join(RSI)
+        df.columns=["COURS_CLOTURE","rsi"] 
+        return df
+    
     def getTiSignal(self):
         """
         Calculates and returns the trading signal for the calculated technical

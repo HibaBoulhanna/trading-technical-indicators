@@ -65,10 +65,10 @@ class ChaikinOscillator(TechnicalIndicator):
         adl = pd.DataFrame(index=self._input_data.index, columns=['adl'],
                            data=0, dtype='int64')
 
-        adl['adl'] = self._input_data['Volume'] * (
-                (self._input_data['Close'] - self._input_data['Low']) -
-                (self._input_data['High'] - self._input_data['Close'])
-        ) / (self._input_data['High'] - self._input_data['Low'])
+        adl['adl'] = self._input_data['volume'] * (
+                (self._input_data['close'] - self._input_data['low']) -
+                (self._input_data['high'] - self._input_data['close'])
+        ) / (self._input_data['high'] - self._input_data['low'])
 
         adl = adl.cumsum(axis=0)
         
