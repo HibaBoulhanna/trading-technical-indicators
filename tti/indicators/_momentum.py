@@ -70,9 +70,9 @@ class Momentum(TechnicalIndicator):
                       wsig ; ordre de signal ligne
           Retour:   Momentume (pndas.DataFrame)
         """
-        MOM=pd.Series(self._input_data.diff(period),name="MOM")
+        MOM=pd.Series(self._input_data.close.diff(period),name="MOM")
         MOMsignal=pd.Series(MOM.rolling(wsig, min_periods=wsig).mean(), name= "MOMsignal")
-        df=pd.DataFrame(df)
+        df=pd.DataFrame(self._input_data.close)
         df=df.join(MOM)
         df=df.join(MOMsignal)
         return df

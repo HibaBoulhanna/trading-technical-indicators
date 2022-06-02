@@ -46,18 +46,7 @@ class TripleExponentialMovingAverage(TechnicalIndicator):
         ValueError: Value error occurred when validating the ``input_data``.
     """
     def __init__(self, input_data,fill_missing_values=True):
-       """
-        # Validate and store if needed, the input parameters
-        if isinstance(period, int):
-            if period > 0:
-                self._period = period
-            else:
-                raise WrongValueForInputParameter(
-                    period, 'period', '>0')
-        else:
-            raise WrongTypeForInputParameter(
-                type(period), 'period', 'int')
-        """
+   
         # Control is passing to the parent class
         super().__init__(calling_instance=self.__class__.__name__,
                          input_data=input_data,

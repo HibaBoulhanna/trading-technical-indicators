@@ -64,11 +64,11 @@ class OnBalanceVolume(TechnicalIndicator):
           df : pandas.DataFrame: les prix
           vol: pandas.DataFrame : les volumes
         """
-        prix=self._input_data.diff(1)/np.abs(self._input_data.diff(1))
+        prix=self._input_data.close.diff(1)/np.abs(self._input_data.close.diff(1))
         vec= self._input_data["volume"]*prix
         vec.iloc[0]=self._input_data["volume"].iloc[0]
         OBV=pd.Series(vec.cumsum(), name= 'OBV')
-        df=pd.DataFrame(_input_data["volume"])
+        df=pd.DataFrame(self._input_data["volume"])
         df=df.join(OBV)
         return df
         
