@@ -68,7 +68,7 @@ class TechnicalIndicator(ABC):
                               fill_missing_values=fill_missing_values)
 
         # Calculation of the Technical Indicator
-        self._ti_data = self._calculateTi(period=100)
+        self._ti_data = self._calculateTi()
 
     @staticmethod
     def _rolling_pipe(df, window, function):

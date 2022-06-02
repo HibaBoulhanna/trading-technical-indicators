@@ -7,7 +7,7 @@ File name: _on_balance_volume.py
 
 import pandas as pd
 import os, sys
-imort numpy as np
+import numpy as np
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
 from _technical_indicator_obv import TechnicalIndicator
 from utils.constants import TRADE_SIGNALS
@@ -55,7 +55,7 @@ class OnBalanceVolume(TechnicalIndicator):
         data are taken from an attribute of the parent class.
 
         Returns:
-            pandas.DataFrame: The calculated indicator. Index is of type
+            pandas.DataFrame: The calculated indicator. Index is of typeS
             ``pandas.DatetimeIndex``. It contains one column, the ``obv``.
         """
         """
@@ -65,10 +65,10 @@ class OnBalanceVolume(TechnicalIndicator):
           vol: pandas.DataFrame : les volumes
         """
         prix=self._input_data.diff(1)/np.abs(self._input_data.diff(1))
-        vec= self._input_data["Volume"]*prix
-        vec.iloc[0]=vol.iloc[0]
+        vec= self._input_data["volume"]*prix
+        vec.iloc[0]=self._input_data["volume"].iloc[0]
         OBV=pd.Series(vec.cumsum(), name= 'OBV')
-        df=pd.DataFrame(df)
+        df=pd.DataFrame(_input_data["volume"])
         df=df.join(OBV)
         return df
         
