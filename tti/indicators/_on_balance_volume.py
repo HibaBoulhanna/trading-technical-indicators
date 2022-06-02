@@ -7,8 +7,9 @@ File name: _on_balance_volume.py
 
 import pandas as pd
 import os, sys
+imort numpy as np
 sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..'))
-from _technical_indicator import TechnicalIndicator
+from _technical_indicator_obv import TechnicalIndicator
 from utils.constants import TRADE_SIGNALS
 
 
@@ -57,6 +58,21 @@ class OnBalanceVolume(TechnicalIndicator):
             pandas.DataFrame: The calculated indicator. Index is of type
             ``pandas.DatetimeIndex``. It contains one column, the ``obv``.
         """
+        """
+        On Balance Volume
+         :Paramètre: 
+          df : pandas.DataFrame: les prix
+          vol: pandas.DataFrame : les volumes
+        """
+        prix=self._input_data.diff(1)/np.abs(self._input_data.diff(1))
+        vec= self._input_data["Volume"]*prix
+        vec.iloc[0]=vol.iloc[0]
+        OBV=pd.Series(vec.cumsum(), name= 'OBV')
+        df=pd.DataFrame(df)
+        df=df.join(OBV)
+        return df
+        
+        """
 
         obv = pd.DataFrame(index=self._input_data.index, columns=['obv'],
                            data=0, dtype='int64')
@@ -70,6 +86,7 @@ class OnBalanceVolume(TechnicalIndicator):
         obv['obv'] = obv['obv'].cumsum()
 
         return obv
+        """
 
     def getTiSignal(self):
         """
